@@ -1,7 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <io.h>
+#include <unistd.h>
+
+#if defined(_WIN32) || defined(_WIN64) || defined(WINDOWS)
+#define SLASH "\\"
+#else
+#define SLASH "/"
+#endif
 
 #define BITMAP_LENGTH 14
 #define DIB_LENGTH 40
@@ -25,7 +31,6 @@ void printHelp() {
     );
 }
 
-/* Checks for component name. */
 
 void invalidComponent() {
     printf("Invalid component name! (R, G, B; case-insensitive)\n");
@@ -33,6 +38,7 @@ void invalidComponent() {
     exit(1);
 }
 
+/* Checks for component name. */
 enum Component checkColor(char comp[]) {
     if (strcmp("R", comp) == 0 || strcmp("r", comp) == 0) {
         return R;
@@ -53,16 +59,16 @@ int main(int argc, char* argv[]) {
     if (argc == 2) {
         if (strcmp(argv[1], "--help") == 0) {
             printHelp();
-            exit(0);
+            return 0;
         } else {
             printf("One argument is not enough!\n");
             printHelp();
-            exit(1);
+            return 1;
         }
     } else if (argc == 1) {
         printf("You need to specify component and intensity!\n");
         printHelp();
-        exit(1);
+        return 1;
     } else {
         int i = 1;
         while (i < argc) {
@@ -130,11 +136,11 @@ int main(int argc, char* argv[]) {
     FILE* fp;
     char cwd[256];
     getcwd(cwd, sizeof(cwd));
-    file_name = strcat(strcat(cwd, "\\"), file_name); // FIXME: "\" may not work on Linux?
+    file_name = strcat(strcat(cwd, SLASH), file_name);
     fp = fopen(file_name, "w+b");
     if (fp == NULL) {
         printf("Error opening file.\n");
-        exit(1);
+        return 1;
     }
     fwrite(BITMAP_HEADER, sizeof(char), BITMAP_LENGTH, fp);
     fwrite(DIB_HEADER, sizeof(char), DIB_LENGTH, fp);
